@@ -13,6 +13,12 @@ on:
         description: The mise task to run.
         type: string
         default: ci
+      cache:
+        description: >-
+          Restore and save mise's tool cache. Off by default: callers often publish what this job builds (canaries),
+          and a cache written by a pull request must never reach a published package.
+        type: boolean
+        default: false
       packages-path:
         description: Where `mise run ci` leaves .nupkg files; uploaded from the ubuntu leg when present.
         type: string
@@ -39,7 +45,7 @@ jobs:
 
       - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
-          cache: true
+          cache: ${{ inputs.cache }}
         env:
           MISE_JOBS: "1" # dotnet versions share one DOTNET_ROOT; installing them in parallel races
 
