@@ -35,7 +35,7 @@ in a job of the repo's own `ci.yml`: the reusable `release.yml` only packs, and 
 - `mise.toml`: installs the SDK `global.json` pins (plus any extra runtimes listed after it), and gives the same `mise run` tasks everywhere: `setup`, `build`,
   `test`, `format`, `check`, `pack`, `docs`, `clean`, `ci`, `release`.
 - `global.json`: .NET 11, Microsoft.Testing.Platform.
-- `.editorconfig`: curb's. Change it here, never in a repo.
+- `.editorconfig`: curb's. Change it here, never in a repo. `.gitattributes` keeps checkouts LF to match it.
 - `.github/`: caller workflows, `release-drafter.yml` (0.x rules), `dependabot.yml`.
 - `.claude/skills/`: `commit`, `issue`, `pr`, `releasing`, `breaking-changes`, `upgrade-deps`, `format`.
 
