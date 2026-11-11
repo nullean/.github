@@ -1,0 +1,44 @@
+name: self-check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  zizmor:
+    uses: ./.github/workflows/zizmor.yml
+    permissions:
+      contents: read
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          install_args: actionlint zizmor
+          mise_toml: |
+            [tools]
+            actionlint = "latest"
+            zizmor = "1"
+      - name: actionlint (reusable and template workflows)
+        run: actionlint .github/workflows/*.yml template/.github/workflows/*.yml
+      - name: zizmor (template workflows, pinned to this commit)
+        shell: bash
+        run: |
+          tmp=$(mktemp -d)
+          mkdir -p "$tmp/.github/workflows"
+          for f in template/.github/workflows/*.yml; do
+            sed "s/__NULLEAN_GITHUB_SHA__/$GITHUB_SHA/g" "$f" > "$tmp/.github/workflows/$(basename "$f")"
+          done
+          zizmor --min-severity medium "$tmp/.github/workflows"
+      - name: scripts parse on bash
+        run: for s in scripts/*.sh; do bash -n "$s"; done

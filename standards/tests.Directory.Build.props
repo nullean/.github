@@ -1,0 +1,17 @@
+<!-- tests/Directory.Build.props: the nullean test stack. Versions come from Directory.Packages.props. -->
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="CsCheck" />
+    <PackageReference Include="AwesomeAssertions" />
+  </ItemGroup>
+</Project>

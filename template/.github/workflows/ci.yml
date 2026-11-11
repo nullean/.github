@@ -1,0 +1,24 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    uses: nullean/.github/.github/workflows/dotnet-ci.yml@__NULLEAN_GITHUB_SHA__ # nullean/.github
+    permissions:
+      contents: read
+
+  zizmor:
+    uses: nullean/.github/.github/workflows/zizmor.yml@__NULLEAN_GITHUB_SHA__ # nullean/.github
+    permissions:
+      contents: read

@@ -1,0 +1,15 @@
+name: release-drafter
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  draft:
+    uses: nullean/.github/.github/workflows/release-drafter.yml@__NULLEAN_GITHUB_SHA__ # nullean/.github
+    permissions:
+      contents: write
+      pull-requests: read

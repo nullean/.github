@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Copy the nullean template into a repository checkout, pinning the reusable workflows to this repo's HEAD commit.
+# Files that already exist are left alone unless --force is given (the checkout is git, so an overwrite is a diff to review); nothing is deleted.
+#   scripts/apply-template.sh ~/Projects/proc [--force]
+set -euo pipefail
+
+target="${1:?usage: apply-template.sh <repo checkout> [--force]}"
+force="${2:-}"
+here="$(cd "$(dirname "$0")/.." && pwd)"
+sha="${NULLEAN_GITHUB_SHA:-$(git -C "$here" rev-parse HEAD)}"
+
+cd "$here/template"
+find . -type f | sed 's|^\./||' | sort | while IFS= read -r f; do
+  dest="$target/$f"
+  if [ -e "$dest" ] && [ "$force" != "--force" ]; then
+    echo "exists  $f"
+    continue
+  fi
+  mkdir -p "$(dirname "$dest")"
+  sed "s/__NULLEAN_GITHUB_SHA__/$sha/g" "$f" > "$dest"
+  echo "wrote   $f"
+done

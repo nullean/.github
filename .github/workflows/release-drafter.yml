@@ -1,0 +1,29 @@
+# Reusable: keep the next release's draft up to date from the labels of merged pull requests.
+# Promoting the draft (publishing it) is what releases; see release.yml.
+name: release-drafter
+
+on:
+  workflow_call:
+    inputs:
+      config-name:
+        description: Config file under .github/ in the calling repo.
+        type: string
+        default: release-drafter.yml
+
+permissions: {}
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: release-drafter-${{ github.repository }}
+    permissions:
+      contents: write # create and edit the draft release
+      pull-requests: read
+    steps:
+      - uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0 # v7.10.0
+        with:
+          config-name: ${{ inputs.config-name }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

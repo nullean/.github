@@ -1,0 +1,76 @@
+# Bootstraps the toolchain and is the one entry point: `mise run <task>`, the same task names in every nullean repo.
+# The .NET SDK version lives only in global.json; mise reads it from there.
+
+[settings]
+idiomatic_version_file_enable_tools = ["dotnet"]
+
+[env]
+DOTNET_NOLOGO = "1"
+DOTNET_CLI_TELEMETRY_OPTOUT = "1"
+DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
+
+[tools]
+gh = "latest"
+zizmor = "1"
+
+[tasks.setup]
+description = "Restore the local .NET tools (curb, nupkg-validator, ...)"
+run = "dotnet tool restore"
+
+[tasks.build]
+description = "Build the solution"
+depends = ["setup"]
+run = "dotnet run --project build/scripts -- build"
+
+[tasks.test]
+description = "Build, then run the tests"
+depends = ["setup"]
+run = "dotnet run --project build/scripts -- test"
+
+[tasks.format]
+description = "Format the repository with curb"
+depends = ["setup"]
+run = "dotnet curb format ."
+
+[tasks.check]
+description = "Fail on formatting drift (curb) and on workflow findings (zizmor)"
+depends = ["setup"]
+run = ["dotnet curb check .", "zizmor --min-severity medium .github/workflows"]
+
+[tasks.pack]
+description = "Pack the NuGet packages and validate them"
+depends = ["setup"]
+run = "dotnet run --project build/scripts -- pack"
+
+[tasks.docs]
+description = "Build and serve the documentation"
+run = "dotnet run --project build/scripts -- docs"
+
+[tasks.clean]
+description = "Delete build output"
+run = "dotnet run --project build/scripts -- clean"
+
+[tasks.ci]
+description = "Exactly what CI runs on every push"
+depends = ["setup"]
+run = "dotnet run --project build/scripts -- ci"
+
+[tasks.release]
+description = "Open the release-drafter draft; `mise run release publish` publishes it, which releases"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+tag=$(gh release list --json tagName,isDraft --jq '[.[] | select(.isDraft)][0].tagName')
+if [ -z "$tag" ]; then
+  echo "no draft release; merge a labelled pull request to main first" >&2
+  exit 1
+fi
+if [ "${1:-}" = "publish" ]; then
+  gh release edit "$tag" --draft=false
+  echo "published $tag; the release workflow is now packing and pushing it"
+else
+  gh release view "$tag"
+  echo
+  echo "publish with: mise run release publish   (or promote the draft on github.com)"
+fi
+'''

@@ -1,0 +1,160 @@
+# Reusable: release a nullean repository when its GitHub release is published.
+#
+# The flow is: release-drafter keeps a draft up to date from merged PR labels; you promote the draft (from the web UI
+# or phone); publishing creates the tag and fires `release: published` in the calling repo, which calls this workflow.
+#
+# 1. assets (optional): build per-RID binaries with `mise run <assets-task> <rid>` and upload whatever lands in
+#    `assets-path` onto the release. This runs first, so a failed native build never leaves packages half published.
+# 2. nuget: pack at the tag's version (MinVer reads the tag the release just created), then push with NuGet trusted
+#    publishing. nuget.org's trusted publishing policy must name the *calling* repo's workflow file (release.yml).
+name: release
+
+on:
+  workflow_call:
+    inputs:
+      assets-rids:
+        description: JSON array of runtime identifiers to build release assets for. Empty means a library-only release.
+        type: string
+        default: '[]'
+      assets-task:
+        description: mise task that builds the release assets for one RID (the RID is passed as its only argument).
+        type: string
+        default: release-assets
+      assets-path:
+        description: Directory the assets task writes its files to.
+        type: string
+        default: .artifacts/release-assets
+      pack-task:
+        description: mise task that builds, packs and validates the NuGet packages.
+        type: string
+        default: pack
+      packages-path:
+        description: Directory the pack task writes .nupkg files to.
+        type: string
+        default: .artifacts/package/release
+      environment:
+        description: GitHub environment the NuGet push runs in (can require a reviewer).
+        type: string
+        default: nuget
+    secrets:
+      NUGET_USER:
+        description: The nuget.org profile name trusted publishing logs in as.
+        required: true
+
+permissions: {}
+
+jobs:
+  assets:
+    name: assets (${{ matrix.rid }})
+    if: inputs.assets-rids != '[]'
+    strategy:
+      fail-fast: true
+      matrix:
+        rid: ${{ fromJSON(inputs.assets-rids) }}
+    # native AOT needs a runner of the target OS and architecture
+    runs-on: >-
+      ${{ (matrix.rid == 'linux-x64' && 'ubuntu-latest')
+       || (matrix.rid == 'linux-arm64' && 'ubuntu-24.04-arm')
+       || (matrix.rid == 'osx-arm64' && 'macos-latest')
+       || (matrix.rid == 'osx-x64' && 'macos-15-intel')
+       || (matrix.rid == 'win-x64' && 'windows-latest')
+       || (matrix.rid == 'win-arm64' && 'windows-11-arm')
+       || 'ubuntu-latest' }}
+    timeout-minutes: 60
+    permissions:
+      contents: write # upload assets onto the release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          cache: true
+
+      - name: Build the ${{ matrix.rid }} assets
+        shell: bash
+        env:
+          TASK: ${{ inputs.assets-task }}
+          RID: ${{ matrix.rid }}
+        run: mise run "$TASK" "$RID"
+
+      - name: Upload onto the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          ASSETS: ${{ inputs.assets-path }}
+        run: |
+          shopt -s nullglob
+          files=("$ASSETS"/*)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::the assets task wrote nothing to $ASSETS"
+            exit 1
+          fi
+          gh release upload "$TAG" "${files[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+
+  nuget:
+    needs: assets
+    # runs after the assets succeeded, or when there are none
+    if: ${{ !cancelled() && (needs.assets.result == 'success' || needs.assets.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write # NuGet trusted publishing: exchange the OIDC token for a short-lived key
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          cache: true
+
+      - name: Pack and validate
+        shell: bash
+        env:
+          TASK: ${{ inputs.pack-task }}
+        run: mise run "$TASK"
+
+      - name: Check the packages carry the release version
+        shell: bash
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          PACKAGES: ${{ inputs.packages-path }}
+        run: |
+          shopt -s nullglob
+          version="${TAG#v}"
+          packages=("$PACKAGES"/*.nupkg)
+          if [ ${#packages[@]} -eq 0 ]; then
+            echo "::error::no packages in $PACKAGES"
+            exit 1
+          fi
+          for p in "${packages[@]}"; do
+            case "$(basename "$p")" in
+              *."$version".nupkg) ;;
+              *) echo "::error::$(basename "$p") is not version $version"; exit 1 ;;
+            esac
+          done
+
+      # the key lasts an hour, so log in right before the push
+      - name: Log in to nuget.org (trusted publishing)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push to nuget.org
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          PACKAGES: ${{ inputs.packages-path }}
+        run: |
+          dotnet nuget push "$PACKAGES/*.nupkg" -k "$NUGET_API_KEY" \
+            -s https://api.nuget.org/v3/index.json --skip-duplicate

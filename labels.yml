@@ -1,0 +1,11 @@
+# Release labels. Every pull request carries exactly one (pr-labels.yml); release-drafter maps them to versions.
+- {name: breaking, color: b60205, description: "Breaks a public API or behaviour (0.x: minor bump, 1.x+: major)"}
+- {name: feature, color: 0e8a16, description: "A new capability (minor bump)"}
+- {name: enhancement, color: a2eeef, description: "An existing capability improved (minor bump)"}
+- {name: bug, color: d73a4a, description: "A defect fixed (patch)"}
+- {name: fix, color: d73a4a, description: "A defect fixed (patch)"}
+- {name: documentation, color: 0075ca, description: "Documentation only (patch)"}
+- {name: chore, color: cfd3d7, description: "Internal change, no user-visible effect (patch)"}
+- {name: dependencies, color: 0366d6, description: "Dependency updates (patch)"}
+- {name: ci, color: ededed, description: "Build and automation (patch)"}
+- {name: "changelog:skip", color: ffffff, description: "Left out of the release notes"}

@@ -1,0 +1,57 @@
+# Reusable: build, test and pack a nullean repository through its mise facade.
+# The calling repo owns what `mise run ci` does; this workflow only provides the machines and the toolchain.
+name: dotnet-ci
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: JSON array of runner labels to run `mise run ci` on.
+        type: string
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      task:
+        description: The mise task to run.
+        type: string
+        default: ci
+      packages-path:
+        description: Where `mise run ci` leaves .nupkg files; uploaded from the ubuntu leg when present.
+        type: string
+        default: .artifacts/package/release
+
+permissions: {}
+
+jobs:
+  ci:
+    name: ${{ inputs.task }} (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.os) }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # MinVer computes the version from tag history
+          persist-credentials: false
+
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          cache: true
+
+      - name: mise run ${{ inputs.task }}
+        shell: bash
+        env:
+          TASK: ${{ inputs.task }}
+        run: mise run "$TASK"
+
+      - name: Upload packages
+        if: startsWith(matrix.os, 'ubuntu')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packages
+          path: ${{ inputs.packages-path }}/*.nupkg
+          if-no-files-found: ignore
+          retention-days: 7

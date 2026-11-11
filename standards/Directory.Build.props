@@ -1,0 +1,69 @@
+<!--
+  The nullean baseline. Merge this into a repository's Directory.Build.props; keep repo-specific settings below it.
+  Packable projects add only: PackageId (when it differs), Description, PackageTags, and a README.md + skills/ next to
+  the project file. Everything else comes from here.
+-->
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(MSBuildThisFileDirectory).artifacts</ArtifactsPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- MinVer: versions come from tags, which publishing a release-drafter draft creates -->
+  <PropertyGroup>
+    <MinVerMinimumMajorMinor>0.1</MinVerMinimumMajorMinor>
+    <MinVerDefaultPreReleaseIdentifiers>canary.0</MinVerDefaultPreReleaseIdentifiers>
+  </PropertyGroup>
+
+  <!-- Strong naming: every library, one key per repo at build/keys/keypair.snk -->
+  <PropertyGroup Condition="Exists('$(MSBuildThisFileDirectory)build/keys/keypair.snk')">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)build/keys/keypair.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <!-- Package metadata -->
+  <PropertyGroup>
+    <Authors>Martijn Laarman</Authors>
+    <Company>Nullean</Company>
+    <Copyright>Copyright © Nullean $([System.DateTime]::UtcNow.Year)</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>nuget-icon.png</PackageIcon>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DebugType>embedded</DebugType>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- RepositoryUrl, PackageProjectUrl and PackageReleaseNotes: set once per repo -->
+  <!--
+  <PropertyGroup>
+    <RepositoryUrl>https://github.com/nullean/REPO</RepositoryUrl>
+    <PackageProjectUrl>https://REPO.nullean.net</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/nullean/REPO/releases</PackageReleaseNotes>
+  </PropertyGroup>
+  -->
+
+  <!-- Icon, README and agent skills, packed into every packable project -->
+  <ItemGroup Condition="'$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)nuget-icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)/README.md" Pack="true" PackagePath="\"
+          Condition="Exists('$(MSBuildProjectDirectory)/README.md')" />
+    <!-- https://devblogs.microsoft.com/dotnet/delivering-skills-in-nuget-packages/ : skills/<name>/SKILL.md -->
+    <None Include="$(MSBuildProjectDirectory)/skills/**/*" Pack="true" PackagePath="skills/%(RecursiveDir)" Visible="false" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="Exists('$(MSBuildProjectDirectory)/README.md')">
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+</Project>
