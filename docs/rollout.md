@@ -81,3 +81,14 @@ What applying this template to proc and curb taught us, in the order the pull re
 
 - `.editorconfig` from the template, `curb-cli` in the tool manifest, `format`/`check` tasks, a CI check, and the
   re-format itself — always last, so behaviour PRs stay readable.
+
+## 6. READMEs (label `documentation`)
+
+- Root `README.md` follows `standards/README.template.md`: logo, tagline, one badge row (NuGet, CI, docs only where a
+  docs site exists), a show-off image where the project has something visual (else a short code sample), install,
+  quick start, a packages table for multi-package repositories, links.
+- Every packable project packs its own `src/<Project>/README.md` following `standards/PACKAGE-README.template.md`:
+  CommonMark only, absolute links, images only from nuget.org's allowed hosts (`raw.githubusercontent.com`,
+  `img.shields.io`), PNG not SVG. `scripts/check-package-readme.sh <nupkg>` must pass for every package `mise run pack`
+  produces.
+- HTML landing pages and docs sites are the maintainer's call per project: README work creates or changes none.
