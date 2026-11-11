@@ -32,6 +32,12 @@ on:
         description: Directory the pack task writes .nupkg files to.
         type: string
         default: .artifacts/package/release
+      append-to-notes:
+        description: >-
+          Glob under packages-path of markdown files (public API changes) appended to the release notes after the
+          push. Empty appends nothing.
+        type: string
+        default: breaking-changes-*.md
       environment:
         description: GitHub environment the NuGet push runs in (can require a reviewer).
         type: string
@@ -106,7 +112,7 @@ jobs:
     timeout-minutes: 30
     environment: ${{ inputs.environment }}
     permissions:
-      contents: read
+      contents: write # append the public API changes to the release notes
       id-token: write # NuGet trusted publishing: exchange the OIDC token for a short-lived key
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -162,3 +168,29 @@ jobs:
         run: |
           dotnet nuget push "$PACKAGES/*.nupkg" -k "$NUGET_API_KEY" \
             -s https://api.nuget.org/v3/index.json --skip-duplicate
+
+      # after the push, so the notes only gain the API changes once the packages are out; a re-run appends nothing twice
+      - name: Append the public API changes to the release notes
+        if: inputs.append-to-notes != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          PACKAGES: ${{ inputs.packages-path }}
+          GLOB: ${{ inputs.append-to-notes }}
+        run: |
+          shopt -s nullglob
+          # shellcheck disable=SC2206 # the glob is meant to expand
+          files=("$PACKAGES"/$GLOB)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "no files match $GLOB"
+            exit 0
+          fi
+          notes=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body)
+          marker="<!-- public-api-changes -->"
+          case "$notes" in *"$marker"*) echo "already appended"; exit 0 ;; esac
+          {
+            printf '%s\n\n%s\n' "$notes" "$marker"
+            for f in "${files[@]}"; do printf '\n'; cat "$f"; printf '\n'; done
+          } > "$RUNNER_TEMP/notes.md"
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/notes.md"
