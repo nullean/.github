@@ -14,11 +14,11 @@ concurrency:
 
 jobs:
   build:
-    uses: nullean/.github/.github/workflows/dotnet-ci.yml@__NULLEAN_GITHUB_SHA__ # nullean/.github
+    uses: nullean/.github/.github/workflows/dotnet-ci.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
     permissions:
       contents: read
 
   zizmor:
-    uses: nullean/.github/.github/workflows/zizmor.yml@__NULLEAN_GITHUB_SHA__ # nullean/.github
+    uses: nullean/.github/.github/workflows/zizmor.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
     permissions:
       contents: read

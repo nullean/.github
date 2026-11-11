@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   release:
-    uses: nullean/.github/.github/workflows/release.yml@__NULLEAN_GITHUB_SHA__ # nullean/.github
+    uses: nullean/.github/.github/workflows/release.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
     permissions:
       contents: write
       id-token: write

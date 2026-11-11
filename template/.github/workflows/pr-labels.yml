@@ -8,5 +8,5 @@ permissions: {}
 
 jobs:
   release-label:
-    uses: nullean/.github/.github/workflows/pr-labels.yml@__NULLEAN_GITHUB_SHA__ # nullean/.github
+    uses: nullean/.github/.github/workflows/pr-labels.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
     permissions: {}

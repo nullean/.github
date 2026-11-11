@@ -9,7 +9,7 @@ permissions: {}
 
 jobs:
   draft:
-    uses: nullean/.github/.github/workflows/release-drafter.yml@__NULLEAN_GITHUB_SHA__ # nullean/.github
+    uses: nullean/.github/.github/workflows/release-drafter.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
     permissions:
       contents: write
       pull-requests: read

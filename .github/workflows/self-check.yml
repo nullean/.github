@@ -37,7 +37,7 @@ jobs:
           tmp=$(mktemp -d)
           mkdir -p "$tmp/.github/workflows"
           for f in template/.github/workflows/*.yml; do
-            sed "s/__NULLEAN_GITHUB_SHA__/$GITHUB_SHA/g" "$f" > "$tmp/.github/workflows/$(basename "$f")"
+            sed -e "s/__NULLEAN_GITHUB_SHA__/$GITHUB_SHA/g" -e "s/__NULLEAN_GITHUB_REF__/self/g" "$f" > "$tmp/.github/workflows/$(basename "$f")"
           done
           zizmor --min-severity medium "$tmp/.github/workflows"
       - name: scripts parse on bash
