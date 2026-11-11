@@ -59,7 +59,7 @@
     <None Include="$(MSBuildProjectDirectory)/README.md" Pack="true" PackagePath="\"
           Condition="Exists('$(MSBuildProjectDirectory)/README.md')" />
     <!-- https://devblogs.microsoft.com/dotnet/delivering-skills-in-nuget-packages/ : skills/<name>/SKILL.md -->
-    <None Include="$(MSBuildProjectDirectory)/skills/**/*" Pack="true" PackagePath="skills/%(RecursiveDir)" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)/skills/**/*" Pack="true" PackagePath="skills/" Visible="false" />
   </ItemGroup>
 
   <PropertyGroup Condition="Exists('$(MSBuildProjectDirectory)/README.md')">
