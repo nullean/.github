@@ -72,7 +72,7 @@ jobs:
 
       - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
-          cache: true
+          cache: false # a release never restores a cache PR builds could have written
 
       - name: Build the ${{ matrix.rid }} assets
         shell: bash
@@ -115,7 +115,7 @@ jobs:
 
       - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
-          cache: true
+          cache: false # a release never restores a cache PR builds could have written
 
       - name: Pack and validate
         shell: bash
