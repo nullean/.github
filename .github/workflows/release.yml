@@ -3,10 +3,13 @@
 # The flow is: release-drafter keeps a draft up to date from merged PR labels; you promote the draft (from the web UI
 # or phone); publishing creates the tag and fires `release: published` in the calling repo, which calls this workflow.
 #
+# Call it from the repository's ci.yml (`if: github.event_name == 'release'`): nuget.org's trusted publishing policies
+# name ci.yml, and the OIDC token names the calling workflow.
+#
 # 1. assets (optional): build per-RID binaries with `mise run <assets-task> <rid>` and upload whatever lands in
 #    `assets-path` onto the release. This runs first, so a failed native build never leaves packages half published.
 # 2. nuget: pack at the tag's version (MinVer reads the tag the release just created), then push with NuGet trusted
-#    publishing. nuget.org's trusted publishing policy must name the *calling* repo's workflow file (release.yml).
+#    publishing.
 name: release
 
 on:
@@ -39,9 +42,11 @@ on:
         type: string
         default: breaking-changes-*.md
       environment:
-        description: GitHub environment the NuGet push runs in (can require a reviewer).
+        description: >-
+          GitHub environment the NuGet push runs in (can require a reviewer). Empty runs in none; set it only when the
+          trusted publishing policy on nuget.org names that environment.
         type: string
-        default: nuget
+        default: ''
     secrets:
       NUGET_USER:
         description: The nuget.org profile name trusted publishing logs in as.
@@ -110,7 +115,7 @@ jobs:
     if: ${{ !cancelled() && (needs.assets.result == 'success' || needs.assets.result == 'skipped') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment != '' && inputs.environment || null }}
     permissions:
       contents: write # append the public API changes to the release notes
       id-token: write # NuGet trusted publishing: exchange the OIDC token for a short-lived key

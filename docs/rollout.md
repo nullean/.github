@@ -45,14 +45,17 @@ What applying this template to proc and curb taught us, in the order the pull re
 
 ## 3. Release from the release-drafter draft (label `ci`)
 
-- `scripts/apply-template.sh <checkout>` adds `release.yml`, `release-drafter.yml`, `pr-labels.yml`,
+- `scripts/apply-template.sh <checkout>` adds `release-drafter.yml`, `pr-labels.yml`,
   `dependabot.yml`, `.github/release-drafter.yml` and the `releasing`, `breaking-changes`, `upgrade-deps` skills (copy
   the updated `pr` skill over the old one). `scripts/sync-labels.sh <owner/repo>` creates the labels.
-- Remove the tag trigger and the tag release job; remove `release-notes` from the tool manifest and its build targets.
+- In `ci.yml`: replace the tag trigger with `release: types: [published]` and the tag release job with a `release` job
+  (`if: github.event_name == 'release'`) calling the reusable `release.yml` — the trusted publishing policies on
+  nuget.org name `ci.yml`, so the release must run from it. Remove `release-notes` from the tool manifest and its
+  build targets.
 - Repos whose release must wait for bespoke gates (curb) keep releasing from `ci.yml`, triggered by
   `release: published` instead of a tag push.
-- The PR body states the manual step: nuget.org's trusted publishing policy for each package must name `release.yml`
-  (environment `nuget`) instead of `ci.yml`.
+- Pass `environment: nuget` to the release job only if the repo's release used it before (entities does): the
+  trusted publishing policy names the environment when one was set.
 
 ## 4. Tests on TUnit + CsCheck + AwesomeAssertions (label `chore`)
 

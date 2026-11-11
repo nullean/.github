@@ -11,22 +11,22 @@ put them there.
 | `zizmor.yml` | `ci.yml` | static analysis of the repo's workflows, fails at medium severity |
 | `release-drafter.yml` | `release-drafter.yml` on push to main | keeps the next release's draft current from PR labels |
 | `pr-labels.yml` | `pr-labels.yml` on PR | a PR must carry exactly one release label |
-| `release.yml` | `release.yml` on `release: published` | optional per-RID assets onto the release, then NuGet trusted publishing |
+| `release.yml` | the `release` job in `ci.yml`, on `release: published` | optional per-RID assets onto the release, then NuGet trusted publishing |
 
 Callers pin these by commit SHA. Dependabot's `github-actions` updates bump the pin.
 
 ## Releasing
 
 Every repo releases the same way. release-drafter drafts the release from merged PR labels. **Publishing the draft**
-(on github.com, from a phone, or `mise run release publish`) creates the tag and runs `release.yml`. Pushing a tag on
+(on github.com, from a phone, or `mise run release publish`) creates the tag and runs the `release` job in `ci.yml`. Pushing a tag on
 its own does nothing.
 
 - In 0.x, `breaking` bumps the minor version.
 - 1.0 is a manual decision, made by editing the draft's tag.
 - Binary repos upload their assets after publishing, so they cannot use GitHub's immutable releases.
 
-nuget.org's trusted publishing policy for each package must name the repo, the workflow file `release.yml` and the
-environment `nuget`.
+nuget.org's trusted publishing policies name `ci.yml`, so the release job lives there and calls the reusable
+`release.yml`.
 
 ## Files every repo carries (`template/`)
 

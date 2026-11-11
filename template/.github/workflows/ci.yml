@@ -1,9 +1,13 @@
 name: ci
 
+# nuget.org's trusted publishing policies name this file, so releasing happens here too: publishing the
+# release-drafter draft (web UI or phone) fires `release: published`, and the release job below runs on it.
 on:
   pull_request:
   push:
     branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions: {}
@@ -22,3 +26,15 @@ jobs:
     uses: nullean/.github/.github/workflows/zizmor.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
     permissions:
       contents: read
+
+  release:
+    if: github.event_name == 'release'
+    needs: [build, zizmor]
+    uses: nullean/.github/.github/workflows/release.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
+    permissions:
+      contents: write
+      id-token: write
+    # with:
+    #   assets-rids: '["linux-x64", "linux-arm64", "osx-arm64", "win-x64", "win-arm64"]'
+    secrets:
+      NUGET_USER: ${{ secrets.NUGET_USER }}
