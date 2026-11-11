@@ -49,8 +49,9 @@ What applying this template to proc and curb taught us, in the order the pull re
   `dependabot.yml`, `.github/release-drafter.yml` and the `releasing`, `breaking-changes`, `upgrade-deps` skills (copy
   the updated `pr` skill over the old one). `scripts/sync-labels.sh <owner/repo>` creates the labels.
 - In `ci.yml`: replace the tag trigger with `release: types: [published]` and the tag release job with a `release` job
-  (`if: github.event_name == 'release'`) calling the reusable `release.yml` — the trusted publishing policies on
-  nuget.org name `ci.yml`, so the release must run from it. Remove `release-notes` from the tool manifest and its
+  (`if: github.event_name == 'release'`) calling the reusable `release.yml` (packs, uploads `release-packages`) plus a
+  `publish` job in `ci.yml` itself using `nullean/.github/actions/nuget-publish` — nuget.org checks the token's
+  `job_workflow_ref`, so a push from inside the reusable workflow is rejected (HTTP 401). Remove `release-notes` from the tool manifest and its
   build targets.
 - Repos whose release must wait for bespoke gates (curb) keep releasing from `ci.yml`, triggered by
   `release: published` instead of a tag push.

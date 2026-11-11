@@ -1,0 +1,61 @@
+name: nuget-publish
+description: >-
+  Push packages to nuget.org with trusted publishing, then append public API reports to the release notes. A composite
+  action, so it runs in the caller's own job and the OIDC token names the caller's workflow (ci.yml), which is what
+  nuget.org's trusted publishing policies check.
+inputs:
+  user:
+    description: The nuget.org profile name trusted publishing logs in as (secrets.NUGET_USER).
+    required: true
+  packages-path:
+    description: Directory holding the .nupkg files (and any *breaking-changes*.md reports).
+    required: false
+    default: packages
+  append-to-notes:
+    description: Glob under packages-path of markdown reports to append to the release notes; empty appends nothing.
+    required: false
+    default: '*breaking-changes*.md'
+runs:
+  using: composite
+  steps:
+    # the key lasts an hour, so log in right before the push
+    - name: Log in to nuget.org (trusted publishing)
+      id: nuget-login
+      uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+      with:
+        user: ${{ inputs.user }}
+
+    - name: Push to nuget.org
+      shell: bash
+      env:
+        NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        PACKAGES: ${{ inputs.packages-path }}
+      run: |
+        dotnet nuget push "$PACKAGES/*.nupkg" -k "$NUGET_API_KEY" \
+          -s https://api.nuget.org/v3/index.json --skip-duplicate
+
+    # after the push, so the notes only gain the API changes once the packages are out; a re-run appends nothing twice
+    - name: Append the public API changes to the release notes
+      if: inputs.append-to-notes != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG: ${{ github.event.release.tag_name }}
+        PACKAGES: ${{ inputs.packages-path }}
+        GLOB: ${{ inputs.append-to-notes }}
+      run: |
+        shopt -s nullglob
+        # shellcheck disable=SC2206 # the glob is meant to expand
+        files=("$PACKAGES"/$GLOB)
+        if [ ${#files[@]} -eq 0 ]; then
+          echo "no files match $GLOB"
+          exit 0
+        fi
+        notes=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body)
+        marker="<!-- public-api-changes -->"
+        case "$notes" in *"$marker"*) echo "already appended"; exit 0 ;; esac
+        {
+          printf '%s\n\n%s\n' "$notes" "$marker"
+          for f in "${files[@]}"; do printf '\n'; cat "$f"; printf '\n'; done
+        } > "$RUNNER_TEMP/notes.md"
+        gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/notes.md"

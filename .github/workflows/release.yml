@@ -8,8 +8,12 @@
 #
 # 1. assets (optional): build per-RID binaries with `mise run <assets-task> <rid>` and upload whatever lands in
 #    `assets-path` onto the release. This runs first, so a failed native build never leaves packages half published.
-# 2. nuget: pack at the tag's version (MinVer reads the tag the release just created), then push with NuGet trusted
-#    publishing.
+# 2. pack: pack at the tag's version (MinVer reads the tag the release just created), check every package carries
+#    it, and upload them (with any public API reports) as the `release-packages` artifact.
+#
+# Pushing to nuget.org is NOT done here: nuget.org's trusted publishing checks the token's job_workflow_ref, which for
+# a job in this reusable workflow names nullean/.github, not the calling repo. The caller's own job publishes, with
+# the composite action nullean/.github/actions/nuget-publish (composite actions keep the caller's workflow ref).
 name: release
 
 on:
@@ -35,22 +39,6 @@ on:
         description: Directory the pack task writes .nupkg files to.
         type: string
         default: .artifacts/package/release
-      append-to-notes:
-        description: >-
-          Glob under packages-path of markdown files (public API changes) appended to the release notes after the
-          push. Empty appends nothing.
-        type: string
-        default: breaking-changes-*.md
-      environment:
-        description: >-
-          GitHub environment the NuGet push runs in (can require a reviewer). Empty runs in none; set it only when the
-          trusted publishing policy on nuget.org names that environment.
-        type: string
-        default: ''
-    secrets:
-      NUGET_USER:
-        description: The nuget.org profile name trusted publishing logs in as.
-        required: true
 
 permissions: {}
 
@@ -109,16 +97,14 @@ jobs:
           fi
           gh release upload "$TAG" "${files[@]}" --clobber --repo "$GITHUB_REPOSITORY"
 
-  nuget:
+  pack:
     needs: assets
     # runs after the assets succeeded, or when there are none
     if: ${{ !cancelled() && (needs.assets.result == 'success' || needs.assets.result == 'skipped') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: ${{ inputs.environment != '' && inputs.environment || null }}
     permissions:
-      contents: write # append the public API changes to the release notes
-      id-token: write # NuGet trusted publishing: exchange the OIDC token for a short-lived key
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -158,44 +144,11 @@ jobs:
             esac
           done
 
-      # the key lasts an hour, so log in right before the push
-      - name: Log in to nuget.org (trusted publishing)
-        id: nuget-login
-        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+      - name: Hand the packages to the caller's publish job
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          user: ${{ secrets.NUGET_USER }}
-
-      - name: Push to nuget.org
-        shell: bash
-        env:
-          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
-          PACKAGES: ${{ inputs.packages-path }}
-        run: |
-          dotnet nuget push "$PACKAGES/*.nupkg" -k "$NUGET_API_KEY" \
-            -s https://api.nuget.org/v3/index.json --skip-duplicate
-
-      # after the push, so the notes only gain the API changes once the packages are out; a re-run appends nothing twice
-      - name: Append the public API changes to the release notes
-        if: inputs.append-to-notes != ''
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
-          PACKAGES: ${{ inputs.packages-path }}
-          GLOB: ${{ inputs.append-to-notes }}
-        run: |
-          shopt -s nullglob
-          # shellcheck disable=SC2206 # the glob is meant to expand
-          files=("$PACKAGES"/$GLOB)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "no files match $GLOB"
-            exit 0
-          fi
-          notes=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body)
-          marker="<!-- public-api-changes -->"
-          case "$notes" in *"$marker"*) echo "already appended"; exit 0 ;; esac
-          {
-            printf '%s\n\n%s\n' "$notes" "$marker"
-            for f in "${files[@]}"; do printf '\n'; cat "$f"; printf '\n'; done
-          } > "$RUNNER_TEMP/notes.md"
-          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/notes.md"
+          name: release-packages
+          path: |
+            ${{ inputs.packages-path }}/*.nupkg
+            ${{ inputs.packages-path }}/*breaking-changes*.md
+          if-no-files-found: error

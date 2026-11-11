@@ -11,7 +11,8 @@ put them there.
 | `zizmor.yml` | `ci.yml` | static analysis of the repo's workflows, fails at medium severity |
 | `release-drafter.yml` | `release-drafter.yml` on push to main | keeps the next release's draft current from PR labels |
 | `pr-labels.yml` | `pr-labels.yml` on PR | a PR must carry exactly one release label |
-| `release.yml` | the `release` job in `ci.yml`, on `release: published` | optional per-RID assets onto the release, then NuGet trusted publishing |
+| `release.yml` | the `release` job in `ci.yml`, on `release: published` | optional per-RID assets onto the release, then packs at the tag and uploads the packages as an artifact |
+| `actions/nuget-publish` | a step in the caller's own `publish` job | NuGet trusted publishing push, then appends public API reports to the notes (a composite action, so the token names the caller's `ci.yml`) |
 
 Callers pin these by commit SHA. Dependabot's `github-actions` updates bump the pin.
 
@@ -25,8 +26,9 @@ its own does nothing.
 - 1.0 is a manual decision, made by editing the draft's tag.
 - Binary repos upload their assets after publishing, so they cannot use GitHub's immutable releases.
 
-nuget.org's trusted publishing policies name `ci.yml`, so the release job lives there and calls the reusable
-`release.yml`.
+nuget.org's trusted publishing policies name `ci.yml` and check the token's `job_workflow_ref`, so the push must run
+in a job of the repo's own `ci.yml`: the reusable `release.yml` only packs, and the repo's `publish` job pushes with the
+`actions/nuget-publish` composite action (composite actions keep the caller's workflow ref).
 
 ## Files every repo carries (`template/`)
 
