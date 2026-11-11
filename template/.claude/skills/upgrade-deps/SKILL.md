@@ -10,7 +10,7 @@ Versions live in one place each:
 | What | Where |
 |---|---|
 | NuGet packages | `Directory.Packages.props` (Central Package Management); never put `Version=` on a `PackageReference` |
-| .NET tools | `.config/dotnet-tools.json` |
+| .NET tools | `.config/dotnet-tools.json` (or `dotnet-tools.json` at the root) |
 | .NET SDK | `global.json` only; mise reads it from there |
 | other CLI tools | `mise.toml` `[tools]` |
 | GitHub Actions | pinned by commit SHA with a `# vX.Y.Z` comment; reusable workflows from `nullean/.github` likewise |
