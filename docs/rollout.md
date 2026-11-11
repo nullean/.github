@@ -68,6 +68,12 @@ What applying this template to proc and curb taught us, in the order the pull re
   become DU cases bound with `target [deps] { sh $"…" }` / `command { requires …; composes … }` (see its README).
 - Keep the target names and behaviour: `--help` lists the same targets, `-s` still skips dependencies, `mise run ci`
   does exactly what it did. Remove Argu and Bullseye from `Directory.Packages.props`; Proc comes with Make.Fs.
+- **Commands go through Proc.Fs, not the C# `ProcNet` API.** A target body is the `target [deps] { … }` shell block:
+  `sh $"dotnet build -c Release"`, `let! sha = text $"git rev-parse HEAD"`, `let! files = lines $"…"`, loops over
+  `lines` output, `use! _ = inDir "src"` / `withEnv [...]` instead of changing directories by hand. Helpers that
+  compute a value (MinVer version, git SHA) use `shell { return! … }` / `text`, not `Proc.Start(...).ConsoleOut`.
+  No `exec "dotnet" [list]` wrappers and no `open ProcNet` left in `build/scripts`. Arguments that may be empty are
+  separate `if` branches or lists spliced with `{args}` — never string-concatenated.
 - Repos without a build project (snapshots, cdp, terminal-images) keep calling `dotnet` from mise.
 
 ## 5. curb formatting (label `chore`)
