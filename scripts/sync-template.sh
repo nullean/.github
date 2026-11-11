@@ -46,7 +46,9 @@ for skill in commit issue pr breaking-changes upgrade-deps format; do
   sync_file ".claude/skills/$skill/SKILL.md"
 done
 sync_file ".claude/skills/writing-style.md"
-if grep -qE '^#+ Releasing' "$target/AGENTS.md" 2>/dev/null; then
+if [ ! -f "$target/.github/release-drafter.yml" ]; then
+  :   # repositories that don't release (e.g. a website) carry no releasing skill
+elif grep -qE '^#+ Releasing' "$target/AGENTS.md" 2>/dev/null; then
   sync_file ".claude/skills/releasing/SKILL.md"
 else
   note "skip    .claude/skills/releasing/SKILL.md (AGENTS.md has no Releasing section for the repo's specifics)"
