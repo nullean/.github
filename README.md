@@ -30,7 +30,7 @@ environment `nuget`.
 
 ## Files every repo carries (`template/`)
 
-- `mise.toml`: reads the SDK from `global.json`, and gives the same `mise run` tasks everywhere: `setup`, `build`,
+- `mise.toml`: installs the SDK `global.json` pins (plus any extra runtimes listed after it), and gives the same `mise run` tasks everywhere: `setup`, `build`,
   `test`, `format`, `check`, `pack`, `docs`, `clean`, `ci`, `release`.
 - `global.json`: .NET 11, Microsoft.Testing.Platform.
 - `.editorconfig`: curb's. Change it here, never in a repo.
