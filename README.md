@@ -43,6 +43,10 @@ scripts/apply-template.sh ~/Projects/proc --force    # overwrite too (review the
 scripts/sync-labels.sh nullean/proc                  # create/update the release labels in labels.yml
 ```
 
+## Rolling it out
+
+[docs/rollout.md](docs/rollout.md) is the step-by-step, with what applying it to proc and curb taught us.
+
 ## MSBuild baseline (`standards/`)
 
 - `Directory.Build.props`: language settings, CPM, artifacts output, MinVer, strong naming, package metadata, and
