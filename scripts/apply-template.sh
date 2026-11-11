@@ -5,6 +5,7 @@
 set -euo pipefail
 
 target="${1:?usage: apply-template.sh <repo checkout> [--force]}"
+target="$(cd "$target" && pwd)" # absolute: the copy loop runs from inside template/
 force="${2:-}"
 here="$(cd "$(dirname "$0")/.." && pwd)"
 sha="${NULLEAN_GITHUB_SHA:-$(git -C "$here" rev-parse HEAD)}"
