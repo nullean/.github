@@ -35,7 +35,7 @@ run = "dotnet curb format ."
 [tasks.check]
 description = "Fail on formatting drift (curb) and on workflow findings (zizmor)"
 depends = ["setup"]
-run = ["dotnet curb check .", "zizmor --min-severity medium .github/workflows"]
+run = ["dotnet curb check .", "zizmor --min-severity medium ."]
 
 [tasks.pack]
 description = "Pack the NuGet packages and validate them"
