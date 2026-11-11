@@ -43,6 +43,7 @@ in a job of the repo's own `ci.yml`: the reusable `release.yml` only packs, and 
 scripts/apply-template.sh ~/Projects/proc            # copy what is missing, pinned to this repo's HEAD
 scripts/apply-template.sh ~/Projects/proc --force    # overwrite too (review the diff)
 scripts/sync-labels.sh nullean/proc                  # create/update the release labels in labels.yml
+scripts/apply-repo-settings.sh proc [--dry-run]      # merge settings, security, topics, the main ruleset, labels (repos.yml)
 ```
 
 ## Rolling it out

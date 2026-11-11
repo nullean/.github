@@ -1,0 +1,80 @@
+# Per-repository GitHub settings that scripts/apply-repo-settings.sh applies. Everything not listed here is the same
+# for every repository (see the script). `checks` are the CI checks the main ruleset requires on top of
+# release-label and zizmor; list only checks that report on every pull request.
+argh:
+  homepage: https://argh.nullean.net
+  topics: [dotnet, csharp, cli, command-line, source-generator, argument-parser, aot, build-tool]
+  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)", "schema-conformance"]
+assembly-differ:
+  topics: [dotnet, csharp, api-diff, breaking-changes, nuget, assembly, dotnet-tool]
+  checks: ["build", "AOT pack (linux-x64)"]
+  immutable: false
+assembly-rewriter:
+  topics: [dotnet, csharp, assembly, il-rewriting, nuget, dotnet-tool]
+  checks: ["build", "AOT pack (linux-x64)"]
+  immutable: false
+cdp:
+  homepage: https://cdp.nullean.net
+  topics: [dotnet, csharp, chrome-devtools-protocol, cdp, browser-automation, testing, aot]
+  checks: ["Build and test (ubuntu-latest)", "Build and test (macos-latest)", "Build and test (windows-latest)", "@nullean/journeys (node)"]
+  immutable: false
+curb:
+  homepage: https://curb.nullean.net
+  topics: [dotnet, csharp, formatter, code-formatter, editorconfig, roslyn, msbuild, dotnet-tool]
+  checks: ["build", "Corpus and conformance", "AOT pack (linux-x64)"]
+  immutable: false
+entities:
+  homepage: https://entities.nullean.net
+  topics: [dotnet, csharp, domain-driven-design, validation, constraints, source-generator]
+  checks: ["build", "aot (ubuntu-latest)", "aot (macos-latest)", "aot (windows-latest)"]
+layar:
+  homepage: https://layar.nullean.net
+  topics: [dotnet, csharp, layout-analysis, onnx, torchsharp, machine-learning]
+  checks: ["build / ci (ubuntu-latest)"]
+  immutable: false
+mermaider:
+  homepage: https://mermaider.nullean.net
+  topics: [dotnet, csharp, mermaid, diagrams, svg, graph-layout, aot]
+  checks: ["build"]
+nupkg-validator:
+  topics: [dotnet, csharp, nuget, package-validation, dotnet-tool]
+  checks: ["build", "AOT pack (linux-x64)"]
+  immutable: false
+pagefind-net:
+  homepage: https://pagefind.nullean.net
+  topics: [dotnet, csharp, pagefind, search, static-site, aot]
+  checks: ["build"]
+proc:
+  topics: [dotnet, csharp, fsharp, process, shell, reactive, build-scripts]
+  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)"]
+release-notes:
+  topics: [dotnet, csharp, release-notes, changelog, github, dotnet-tool]
+  checks: ["build", "AOT pack (linux-x64)"]
+  immutable: false
+scoped-filesystem:
+  topics: [dotnet, csharp, filesystem, system-io-abstractions, security, sandbox]
+  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)"]
+snapshots:
+  homepage: https://snapshots.nullean.net
+  topics: [dotnet, csharp, snapshot-testing, testing, tunit, awesomeassertions]
+  checks: ["Build and test (ubuntu-latest)", "Build and test (macos-latest)", "Build and test (windows-latest)"]
+  immutable: false
+terminal-images:
+  homepage: https://terminal-images.nullean.net
+  topics: [dotnet, csharp, terminal, kitty, sixel, iterm2, images, aot]
+  checks: ["Build and test (ubuntu-latest)", "Build and test (macos-latest)", "Build and test (windows-latest)"]
+vstest-pretty-logger:
+  topics: [dotnet, csharp, vstest, test-logger, testing]
+  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)"]
+xunit-partitions:
+  topics: [dotnet, csharp, xunit, testing, test-fixtures]
+  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)"]
+nullean.github.io:
+  homepage: https://nullean.net
+  topics: [nullean, website]
+  checks: []
+  release-label: false
+.github:
+  topics: [github-actions, reusable-workflows, templates]
+  checks: []
+  release-label: false
