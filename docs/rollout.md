@@ -46,7 +46,7 @@ What applying this template to proc and curb taught us, in the order the pull re
 ## 3. Release from the release-drafter draft (label `ci`)
 
 - `scripts/apply-template.sh <checkout>` adds `release.yml`, `release-drafter.yml`, `pr-labels.yml`,
-  `dependabot.yml`, `.github/release-drafter.yml` and the `release`, `breaking-changes`, `upgrade-deps` skills (copy
+  `dependabot.yml`, `.github/release-drafter.yml` and the `releasing`, `breaking-changes`, `upgrade-deps` skills (copy
   the updated `pr` skill over the old one). `scripts/sync-labels.sh <owner/repo>` creates the labels.
 - Remove the tag trigger and the tag release job; remove `release-notes` from the tool manifest and its build targets.
 - Repos whose release must wait for bespoke gates (curb) keep releasing from `ci.yml`, triggered by

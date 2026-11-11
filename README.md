@@ -35,7 +35,7 @@ environment `nuget`.
 - `global.json`: .NET 11, Microsoft.Testing.Platform.
 - `.editorconfig`: curb's. Change it here, never in a repo.
 - `.github/`: caller workflows, `release-drafter.yml` (0.x rules), `dependabot.yml`.
-- `.claude/skills/`: `commit`, `issue`, `pr`, `release`, `breaking-changes`, `upgrade-deps`, `format`.
+- `.claude/skills/`: `commit`, `issue`, `pr`, `releasing`, `breaking-changes`, `upgrade-deps`, `format`.
 
 ```bash
 scripts/apply-template.sh ~/Projects/proc            # copy what is missing, pinned to this repo's HEAD
