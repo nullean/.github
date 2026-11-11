@@ -1,0 +1,61 @@
+# Weekly, and whenever the template changes: check every repository listed in repos.yml against template/ and keep one
+# issue ("Template drift") up to date. It reads public repositories only, so GITHUB_TOKEN is enough; fixing the drift
+# is `scripts/sync-template.sh <checkout>` and a PR, run by the maintainer.
+name: template-drift
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  push:
+    branches: [main]
+    paths: [template/**, scripts/sync-template.sh, repos.yml]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: template-drift
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write # keep the drift issue current
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the sync script names the template's tag in workflow pins
+          persist-credentials: false
+
+      - name: Check every repository
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ref=$(git describe --tags --abbrev=0)
+          sha=$(git rev-list -n1 "$ref")
+          report="$RUNNER_TEMP/drift.md"
+          : > "$report"
+          for repo in $(yq -r 'keys | .[]' repos.yml); do
+            [ "$repo" = ".github" ] && continue
+            dir="$RUNNER_TEMP/repos/$repo"
+            git clone -q --depth 1 "https://github.com/nullean/$repo.git" "$dir"
+            if out=$(NULLEAN_GITHUB_SHA="$sha" NULLEAN_GITHUB_REF="$ref" scripts/sync-template.sh "$dir" --check); then
+              :
+            else
+              { echo "### $repo"; echo '```'; echo "$out"; echo '```'; } >> "$report"
+            fi
+          done
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "Template drift"' --json number --jq '.[0].number // empty')
+          if [ -s "$report" ]; then
+            { echo "Repositories that differ from template \`$ref\`. Fix with \`scripts/sync-template.sh <checkout>\` and a PR."; echo; cat "$report"; } > "$RUNNER_TEMP/body.md"
+            if [ -n "$number" ]; then
+              gh issue edit "$number" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/body.md"
+            else
+              gh issue create --repo "$GITHUB_REPOSITORY" --title "Template drift" --body-file "$RUNNER_TEMP/body.md"
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --repo "$GITHUB_REPOSITORY" --comment "Every repository matches template \`$ref\`."
+          fi

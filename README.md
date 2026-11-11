@@ -11,6 +11,7 @@ put them there.
 | `zizmor.yml` | `ci.yml` | static analysis of the repo's workflows, fails at medium severity |
 | `release-drafter.yml` | `release-drafter.yml` on push to main | keeps the next release's draft current from PR labels |
 | `pr-labels.yml` | `pr-labels.yml` on PR | a PR must carry exactly one release label |
+| `dependabot-automerge.yml` | `dependabot-automerge.yml` on PR | Dependabot patch and minor updates merge themselves once required checks pass |
 | `release.yml` | the `release` job in `ci.yml`, on `release: published` | optional per-RID assets onto the release, then packs at the tag and uploads the packages as an artifact |
 | `actions/nuget-publish` | a step in the caller's own `publish` job | NuGet trusted publishing push, then appends public API reports to the notes (a composite action, so the token names the caller's `ci.yml`) |
 
@@ -44,7 +45,11 @@ scripts/apply-template.sh ~/Projects/proc            # copy what is missing, pin
 scripts/apply-template.sh ~/Projects/proc --force    # overwrite too (review the diff)
 scripts/sync-labels.sh nullean/proc                  # create/update the release labels in labels.yml
 scripts/apply-repo-settings.sh proc [--dry-run]      # merge settings, security, topics, the main ruleset, labels (repos.yml)
+scripts/sync-template.sh ~/Projects/proc [--check]   # bring skills, .editorconfig, .gitattributes and shared workflows up to date
 ```
+
+`template-drift.yml` runs the same check weekly over every repository in `repos.yml` and keeps one "Template drift"
+issue current.
 
 ## Rolling it out
 
