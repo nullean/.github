@@ -31,15 +31,15 @@
 
   <!-- Package metadata -->
   <PropertyGroup>
-    <Authors>Martijn Laarman</Authors>
-    <Company>Nullean</Company>
-    <Copyright>Copyright © Nullean $([System.DateTime]::UtcNow.Year)</Copyright>
+    <Authors>Nullean and contributors</Authors>
+    <Copyright>Nullean</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>nuget-icon.png</PackageIcon>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <DebugType>embedded</DebugType>
+    <!-- add PackageValidationBaselineVersion (the last release) to also fail on unlabelled API breaks -->
     <EnablePackageValidation>true</EnablePackageValidation>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
