@@ -9,7 +9,7 @@ status=0
 for pkg in "$@"; do
   readme=$(unzip -Z1 "$pkg" | grep -ixE 'readme\.md' | head -1 || true)
   if [ -z "$readme" ]; then echo "$pkg: no README.md in the package"; status=1; continue; fi
-  text=$(unzip -p "$pkg" "$readme" | sed '/^```/,/^```/d')   # ignore code blocks
+  text=$(unzip -p "$pkg" "$readme" | sed -e '/^```/,/^```/d' -e 's/`[^`]*`//g')   # ignore code blocks and code spans
   problems=""
   html=$(grep -noE '<(img|picture|source|p|div|br|a|table|details|summary)[ >/]' <<<"$text" | sed 's/<!--.*//' || true)
   [ -n "$html" ] && problems="$problems\n  raw HTML: $(echo "$html" | head -3 | tr '\n' ' ')"
