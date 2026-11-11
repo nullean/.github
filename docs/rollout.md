@@ -62,6 +62,14 @@ What applying this template to proc and curb taught us, in the order the pull re
 - Same tests, same pass/skip counts per target framework; `global.json` gets `test.runner`. Mutate the code and
   confirm the suite fails, then revert.
 
+## 4b. Build on Nullean.Make.Fs (label `chore`)
+
+- Port `build/scripts` from Argu + Bullseye to [Nullean.Make.Fs](https://www.nuget.org/packages/Nullean.Make.Fs): targets
+  become DU cases bound with `target [deps] { sh $"…" }` / `command { requires …; composes … }` (see its README).
+- Keep the target names and behaviour: `--help` lists the same targets, `-s` still skips dependencies, `mise run ci`
+  does exactly what it did. Remove Argu and Bullseye from `Directory.Packages.props`; Proc comes with Make.Fs.
+- Repos without a build project (snapshots, cdp, terminal-images) keep calling `dotnet` from mise.
+
 ## 5. curb formatting (label `chore`)
 
 - `.editorconfig` from the template, `curb-cli` in the tool manifest, `format`/`check` tasks, a CI check, and the
