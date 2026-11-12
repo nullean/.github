@@ -3,7 +3,7 @@
 # release-label and zizmor; list only checks that report on every pull request.
 argh:
   homepage: https://argh.nullean.net
-  topics: [dotnet, csharp, cli, command-line, source-generator, argument-parser, aot, build-tool]
+  topics: [dotnet, csharp, cli, command-line, source-generator, argument-parser, aot]
   checks: ["build / ci (ubuntu-latest)", "schema-conformance"]
 assembly-differ:
   topics: [dotnet, csharp, api-diff, breaking-changes, nuget, assembly, dotnet-tool]
@@ -51,6 +51,10 @@ release-notes:
   topics: [dotnet, csharp, release-notes, changelog, github, dotnet-tool]
   checks: ["build", "AOT pack (linux-x64)"]
   immutable: false
+runna:
+  homepage: https://runna.nullean.net
+  topics: [dotnet, csharp, fsharp, build-tool, build-automation, build-targets]
+  checks: ["build / ci (ubuntu-latest)"]
 scoped-filesystem:
   topics: [dotnet, csharp, filesystem, system-io-abstractions, security, sandbox]
   checks: ["build / ci (ubuntu-latest)"]
