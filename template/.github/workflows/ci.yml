@@ -17,10 +17,18 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # macOS runners are scarce: pull requests test on Linux and Windows, main adds macOS. A release runs no tests of its
+  # own; its main-green gate requires main's full run, macOS included, to have passed on the released commit.
   build:
+    if: github.event_name != 'release'
     uses: nullean/.github/.github/workflows/dotnet-ci.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
     permissions:
       contents: read
+    with:
+      os: >-
+        ${{ github.event_name == 'push'
+          && '["ubuntu-latest", "windows-latest", "macos-latest"]'
+          || '["ubuntu-latest", "windows-latest"]' }}
 
   zizmor:
     uses: nullean/.github/.github/workflows/zizmor.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
@@ -28,11 +36,14 @@ jobs:
       contents: read
 
   # packs at the release's tag (and builds per-RID assets if asked) in the shared workflow...
+  # Fails first unless main's ci.yml passed on the released commit (the shared workflow's main-green job). Native
+  # osx-arm64 assets are the one macOS job a release still runs: macOS AOT only compiles on macOS.
   release:
     if: github.event_name == 'release'
-    needs: [build, zizmor]
+    needs: zizmor
     uses: nullean/.github/.github/workflows/release.yml@__NULLEAN_GITHUB_SHA__ # __NULLEAN_GITHUB_REF__
     permissions:
+      actions: read # the main-green gate reads main's runs
       contents: write
     # with:
     #   assets-rids: '["linux-x64", "linux-arm64", "osx-arm64", "win-x64", "win-arm64"]'
