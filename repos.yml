@@ -4,7 +4,7 @@
 argh:
   homepage: https://argh.nullean.net
   topics: [dotnet, csharp, cli, command-line, source-generator, argument-parser, aot, build-tool]
-  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)", "schema-conformance"]
+  checks: ["build / ci (ubuntu-latest)", "schema-conformance"]
 assembly-differ:
   topics: [dotnet, csharp, api-diff, breaking-changes, nuget, assembly, dotnet-tool]
   checks: ["build", "AOT pack (linux-x64)"]
@@ -16,7 +16,7 @@ assembly-rewriter:
 cdp:
   homepage: https://cdp.nullean.net
   topics: [dotnet, csharp, chrome-devtools-protocol, cdp, browser-automation, testing, aot]
-  checks: ["Build and test (ubuntu-latest)", "Build and test (macos-latest)", "Build and test (windows-latest)", "@nullean/journeys (node)"]
+  checks: ["Build and test (ubuntu-latest)", "Build and test (windows-latest)", "@nullean/journeys (node)"]
   immutable: false
 curb:
   homepage: https://curb.nullean.net
@@ -26,7 +26,7 @@ curb:
 entities:
   homepage: https://entities.nullean.net
   topics: [dotnet, csharp, domain-driven-design, validation, constraints, source-generator]
-  checks: ["build", "aot (ubuntu-latest)", "aot (macos-latest)", "aot (windows-latest)"]
+  checks: ["build", "aot (ubuntu-latest)", "aot (windows-latest)"]
 layar:
   homepage: https://layar.nullean.net
   topics: [dotnet, csharp, layout-analysis, onnx, torchsharp, machine-learning]
@@ -46,29 +46,29 @@ pagefind-net:
   checks: ["build"]
 proc:
   topics: [dotnet, csharp, fsharp, process, shell, reactive, build-scripts]
-  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)"]
+  checks: ["build / ci (ubuntu-latest)"]
 release-notes:
   topics: [dotnet, csharp, release-notes, changelog, github, dotnet-tool]
   checks: ["build", "AOT pack (linux-x64)"]
   immutable: false
 scoped-filesystem:
   topics: [dotnet, csharp, filesystem, system-io-abstractions, security, sandbox]
-  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)"]
+  checks: ["build / ci (ubuntu-latest)"]
 snapshots:
   homepage: https://snapshots.nullean.net
   topics: [dotnet, csharp, snapshot-testing, testing, tunit, awesomeassertions]
-  checks: ["Build and test (ubuntu-latest)", "Build and test (macos-latest)", "Build and test (windows-latest)"]
+  checks: ["Build and test (ubuntu-latest)", "Build and test (windows-latest)"]
   immutable: false
 terminal-images:
   homepage: https://terminal-images.nullean.net
   topics: [dotnet, csharp, terminal, kitty, sixel, iterm2, images, aot]
-  checks: ["Build and test (ubuntu-latest)", "Build and test (macos-latest)", "Build and test (windows-latest)"]
+  checks: ["Build and test (ubuntu-latest)", "Build and test (windows-latest)"]
 vstest-pretty-logger:
   topics: [dotnet, csharp, vstest, test-logger, testing]
-  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)"]
+  checks: ["build / ci (ubuntu-latest)"]
 xunit-partitions:
   topics: [dotnet, csharp, xunit, testing, test-fixtures]
-  checks: ["build / ci (ubuntu-latest)", "build / ci (macos-latest)"]
+  checks: ["build / ci (ubuntu-latest)"]
 nullean.github.io:
   homepage: https://nullean.net
   topics: [nullean, website]
