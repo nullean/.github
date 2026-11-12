@@ -1,0 +1,62 @@
+name: require-green-main
+description: >-
+  Fail a release unless main's CI passed on the commit being released. Finds the `push` run of the given workflow on the
+  default branch for the release's commit, waits for it to finish (up to `timeout-minutes`), and fails unless it
+  succeeded. Run it as the first job of the release path and make every release job need it, so nothing is built,
+  packed or pushed for a commit main has not proven. Needs `actions: read`.
+inputs:
+  workflow:
+    description: Workflow file whose main-branch run must be green.
+    required: false
+    default: ci.yml
+  sha:
+    description: Commit to check; defaults to the commit the release event fired for.
+    required: false
+    default: ''
+  timeout-minutes:
+    description: How long to wait for a missing or still-running main run before failing.
+    required: false
+    default: '60'
+  token:
+    description: 'Token with `actions: read` on this repository.'
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: composite
+  steps:
+    - name: Require main's CI to be green on this commit
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        WORKFLOW: ${{ inputs.workflow }}
+        SHA: ${{ inputs.sha || github.sha }}
+        TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
+        REPO: ${{ github.repository }}
+      run: |
+        set -euo pipefail
+        branch=$(gh api "repos/$REPO" --jq .default_branch)
+        deadline=$(( $(date +%s) + TIMEOUT_MINUTES * 60 ))
+        echo "Waiting for $WORKFLOW on $branch at $SHA (up to $TIMEOUT_MINUTES minutes)"
+        while :; do
+          run=$(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?branch=$branch&event=push&head_sha=$SHA&per_page=1" \
+                  --jq '.workflow_runs[0] // empty | "\(.id) \(.status) \(.conclusion) \(.html_url)"')
+          if [ -n "$run" ]; then
+            read -r id status conclusion url <<<"$run"
+            if [ "$status" = completed ]; then
+              if [ "$conclusion" = success ]; then
+                echo "main is green at $SHA: $url"
+                exit 0
+              fi
+              echo "::error::$WORKFLOW on $branch concluded '$conclusion' at $SHA ($url). Fix main and release again."
+              exit 1
+            fi
+            echo "  $WORKFLOW run $id is $status"
+          else
+            echo "  no $WORKFLOW push run on $branch for $SHA yet"
+          fi
+          if [ "$(date +%s)" -ge "$deadline" ]; then
+            echo "::error::Timed out after $TIMEOUT_MINUTES minutes waiting for a green $WORKFLOW run on $branch at $SHA."
+            exit 1
+          fi
+          sleep 30
+        done
