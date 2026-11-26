@@ -93,14 +93,10 @@ What applying this template to proc and curb taught us, in the order the pull re
   produces.
 - HTML landing pages and docs sites are the maintainer's call per project: README work creates or changes none.
 
-## 7. macOS and the release gate
+## 7. macOS and releases
 
 - **macOS runs on main only.** Pull requests test on Linux and Windows. Pushes to main add macOS. macOS runners are
   scarce, so no PR waits on one.
-- **A release ships what main proved.** Every release path starts with a job using `actions/require-green-main`. It
-  waits up to 60 minutes for main's `ci.yml` push run on the released commit and fails unless that run succeeded. The
-  job needs `actions: read`. The shared `release.yml` includes it; repos with inline release jobs add their own
-  `main-green` job, and every release job `needs` it.
-- **A release runs no tests of its own** beyond the gate. The one macOS job left on the release path is the
+- **A release runs no tests of its own.** The one macOS job left on the release path is the
   osx-arm64 native AOT pack, because macOS AOT only compiles on macOS.
 
